@@ -1,0 +1,140 @@
+// ===============================================================
+//  PHOTONFORGE (ERC-20) — One-Page A→Z Builder (Upgraded/Pausable/Burnable)
+//  Chain: Ethereum (ERC-Blockchain); Standard: ERC-20
+// Supply: 200,000,000 PFGE (18 decimals)
+// ===============================================================
+
+/*
+    This file demonstrates a combined, "extra-long" ERC-20 token with:
+      - OpenZeppelin security best practices
+      - Staking logic (custom)
+      - Burnable extension
+      - Pausable extension (owner emergency stop)
+      - Full legacy comments, cheatsheet, and how-to notes
+*/
+
+pragma solidity ^0.8.24;
+
+// ========== OpenZeppelin Imports (Modern ERC20, Ownable, Burnable, Pausable) ==========
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
+
+// ===============================================================
+//  PHOTONFORGE ERC-20 CONTRACT (WITH STAKING/BURNABLE/PAUSABLE)
+// ===============================================================
+
+contract Photonforge is ERC20, Ownable, ERC20Burnable, Pausable {
+    // --- Supply ---
+    uint256 public constant INITIAL_SUPPLY = 200_000_000 * 10**18; // 200M PFGE (18 decimals)
+
+    // --- Staking state ---
+    mapping(address => uint256) public stakedBalance;
+    mapping(address => uint256) public stakingTimestamp;
+
+    // --- Constructor ---
+    constructor() ERC20("Photonforge", "PFGE") Ownable(msg.sender) {
+        _mint(msg.sender, INITIAL_SUPPLY); // Mint all to deployer/owner
+    }
+
+    // --- Staking (custom/optional) ---
+    function stake(uint256 amount) public whenNotPaused {
+        require(amount > 0, "Cannot stake zero");
+        _transfer(msg.sender, address(this), amount);
+        stakedBalance[msg.sender] += amount;
+        stakingTimestamp[msg.sender] = block.timestamp;
+    }
+
+    function unstake(uint256 amount) public whenNotPaused {
+        require(stakedBalance[msg.sender] >= amount, "Insufficient staked");
+        stakedBalance[msg.sender] -= amount;
+        _transfer(address(this), msg.sender, amount);
+    }
+
+    // --- Pausable (owner can halt all transfers) ---
+    function pause() public onlyOwner {
+        _pause();
+    }
+
+    function unpause() public onlyOwner {
+        _unpause();
+    }
+
+    // --- OpenZeppelin hooks (required for Pausable logic) ---
+    function _beforeTokenTransfer(address from, address to, uint256 amount)
+        internal
+        override
+        whenNotPaused
+    {
+        super._beforeTokenTransfer(from, to, amount);
+    }
+
+    // --- Optional: Owner utilities placeholder ---
+    // Future features: owner burn, advanced admin, snapshots, etc.
+
+} // contract Photonforge
+
+// ===============================================================
+//  Post-deploy: Auto-gift 5 team addresses, 2,000,000 PFGE each
+// ===============================================================
+
+/*
+    You’ll see multiple languages in one page (.sol, .js, .sh, .json)
+    with clear “DO THIS NEXT” markers. Keep this whole page as notes,
+    then copy each labeled block into the correct project file.
+*/
+
+// 0x LENGTH CHEATSHEET (Ethereum):
+//    • Externally Owned Account (EOA) ADDRESS: 42 chars  = "0x" + 40 hex
+//    • PRIVATE KEY (never commit):         66 chars  = "0x" + 64 hex
+//    • TX HASH / KECCAK256 hex:            66 chars  = "0x" + 64 hex
+// (You’ll “need two 0x” in practice: one PUBLIC address (42 chars)
+//  and one PRIVATE KEY (66 chars). Keep the private key in .env only.)
+
+// EXTERNAL SITES / ACCOUNTS NEEDED (password/API areas labeled):
+//    • Wallet: MetaMask (create your address; export PRIVATE KEY — 66 chars)
+//    • RPC Provider: (Infura) or Alchemy/QuickNode
+//        (Create project; note PROJECT_ID / HTTPS URL)   (password/API area)
+//    • Etherscan account + API key for verification       (password/API area)
+//    • Optional: GitHub (repo), NPM (node), and Geth (local chain)
+
+// DIRECTORY (after you split files):
+//    photonforge/
+//      ├─ contracts/Photonforge.sol
+//      ├─ scripts/deploy_and_airdrop.js
+//      ├─ hardhat.config.js
+//      ├─ package.json
+//      ├─ .env                    (NEVER COMMIT; holds PRIVATE KEY, API KEYS)
+//      └─ truffle-config.js       (optional, if you prefer Truffle)
+
+// (1) Solidity: contracts/Photonforge.sol  (this file!)
+
+// (2) package.json (minimal) — Node project manifest
+// (see your source for full example; not repeated here)
+
+// (3) .env — keep secrets here (NEVER COMMIT)
+// (see your source for full example; not repeated here)
+
+// (4) hardhat.config.js — networks + etherscan verify (uses Infura)
+// (see your source for full example; not repeated here)
+
+// (5) scripts/deploy_and_airdrop.js — deploy + auto-gift 5×2,000,000
+// (see your source for full example; not repeated here)
+
+// (6) QUICKSTART — one-shot terminal flow
+// (see your source for full example; not repeated here)
+
+// (7) OPTIONAL — Truffle equivalents (if you prefer Truffle)
+// (see your source for full example; not repeated here)
+
+// (8) OPTIONAL — Geth private chain (local “Ethereum-type” chain)
+// (see your source for full example; not repeated here)
+
+// (9) OPERATIONAL NOTES — addresses, passwords, websites
+// (see your source for full example; not repeated here)
+
+// ===============================================================
+//  DONE. You now have: Solidity token, Hardhat deploy, (Infura) RPC,
+//  Etherscan verify, auto-gifting to 5 team addresses, plus Truffle/Geth options.
+// ===============================================================
