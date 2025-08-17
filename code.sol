@@ -1,7 +1,40 @@
 // ===============================================================
 //  PHOTONFORGE (ERC-20) — One-Page A→Z Builder
 //  Chain: Ethereum (ERC-Blockchain); Standard: ERC-20
-//  Supply: 200,000,000 PFGE (18 decimals)
+// import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+//  contract Photonforge is ERC20, Ownable, ERC20Burnable {
+//Supply: 200,000,000 PFGE (18 decimals)
+//1: pragma solidity ^0.8.24;
+2:
+3: import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+4: import "@openzeppelin/contracts/access/Ownable.sol";
+5: import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol"; // [INSERTED HERE]
+6:    mapping(address => uint256) public stakedBalance;
+    mapping(address => uint256) public stakingTimestamp;
+
+    // Stake tokens
+    function stake(uint256 amount) public {
+        require(amount > 0, "Cannot stake zero");
+        _transfer(msg.sender, address(this), amount);
+        stakedBalance[msg.sender] += amount;
+        stakingTimestamp[msg.sender] = block.timestamp;
+    }
+
+    // Unstake tokens
+    function unstake(uint256 amount) public {
+        require(stakedBalance[msg.sender] >= amount, "Insufficient staked");
+        stakedBalance[msg.sender] -= amount;
+        _transfer(address(this), msg.sender, amount);
+    }
+7: contract Photonforge is ERC20, Ownable, ERC20Burnable {                   // [MODIFIED LINE]
+8:     uint256 public constant INITIAL_SUPPLY = 200_000_000 * 10**18; // 200M PFGE
+9:
+10:    constructor() ERC20("Photonforge", "PFGE") Ownable(msg.sender) {
+11:        _mint(msg.sender, INITIAL_SUPPLY); // Mint all to deployer/owner
+12:    }
+13:
+14:    // (Optional) owner utilities could go here (pause, burn, etc.). Keeping lean.
+15: }
 //  Post-deploy: Auto-gift 5 team addresses, 2,000,000 PFGE each
 // ===============================================================
 //
